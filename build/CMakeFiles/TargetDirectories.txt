@@ -1,0 +1,4 @@
+/home/cringelord/Desktop/AnomalyAlert/build/CMakeFiles/AnomalyAlert.dir
+/home/cringelord/Desktop/AnomalyAlert/build/CMakeFiles/KafkaConsumer.dir
+/home/cringelord/Desktop/AnomalyAlert/build/CMakeFiles/edit_cache.dir
+/home/cringelord/Desktop/AnomalyAlert/build/CMakeFiles/rebuild_cache.dir
