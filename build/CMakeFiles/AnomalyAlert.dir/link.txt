@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/AnomalyAlert.dir/src/main.cpp.o CMakeFiles/AnomalyAlert.dir/src/simulator/SensorSimulator.cpp.o CMakeFiles/AnomalyAlert.dir/src/simulator/KafkaProducer.cpp.o -o AnomalyAlert  -Wl,-rpath,/usr/local/lib /usr/local/lib/libcppkafka.so /usr/local/lib/librdkafka++.so 
