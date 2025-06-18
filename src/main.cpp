@@ -5,12 +5,19 @@
 #include <thread>
 #include <chrono>
 #include <atomic>
+#include <cstdlib>
 
 using json = nlohmann::json;
 
 int main() {
+    // Получаем адрес брокера из переменной окружения или используем значение по умолчанию
+    const char* kafka_brokers = std::getenv("KAFKA_BROKERS");
+    if (!kafka_brokers) {
+        kafka_brokers = "kafka:9092";  // значение по умолчанию
+    }
+
     SensorSimulator temp_sensor("sensor_number_1", "temperature", 20.0, 50.0);
-    KafkaProducer producer("localhost:9092", "sensor-data");
+    KafkaProducer producer(kafka_brokers, "sensor-data");
 
     for (int i = 0; i < 10; ++i) {
         SensorData data = temp_sensor.generateData();

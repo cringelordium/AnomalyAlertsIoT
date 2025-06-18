@@ -12,22 +12,29 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     zlib1g-dev \
     libboost-all-dev \
-    nlohmann-json3-dev \
     curl \
     unzip \
-    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Установка vcpkg
-RUN git clone https://github.com/Microsoft/vcpkg.git && \
-    cd vcpkg && \
-    ./bootstrap-vcpkg.sh && \
-    ./vcpkg integrate install
+# Сборка librdkafka
+RUN git clone https://github.com/edenhill/librdkafka.git && \
+    cd librdkafka && \
+    git checkout v2.3.0 && \
+    ./configure && \
+    make -j$(nproc) && \
+    make install && \
+    ldconfig
 
-# Установка зависимостей через vcpkg
-RUN cd vcpkg && \
-    ./vcpkg install cppkafka:x64-linux && \
-    ./vcpkg install prometheus-cpp:x64-linux
+# Сборка cppkafka
+RUN git clone https://github.com/mfontanini/cppkafka.git && \
+    cd cppkafka && \
+    git checkout v0.4.1 && \
+    mkdir build && \
+    cd build && \
+    cmake .. -DCPPKAFKA_BUILD_SHARED=OFF -DCPPKAFKA_DISABLE_TESTS=ON -DCPPKAFKA_DISABLE_EXAMPLES=ON && \
+    make -j$(nproc) && \
+    make install && \
+    ldconfig
 
 # Рабочая директория
 WORKDIR /app
@@ -37,7 +44,7 @@ COPY . .
 
 # Создаем директорию для сборки
 RUN mkdir build && cd build && \
-    cmake .. -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake && \
+    cmake .. && \
     make -j$(nproc)
 
 # Финальный образ
@@ -55,15 +62,18 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Копируем собранные библиотеки из builder
-COPY --from=builder /vcpkg/installed/x64-linux/lib/libcppkafka.so* /usr/local/lib/
-COPY --from=builder /vcpkg/installed/x64-linux/lib/libprometheus-cpp-*.so* /usr/local/lib/
+COPY --from=builder /usr/local/lib/librdkafka* /usr/local/lib/
+COPY --from=builder /usr/local/lib/libcppkafka* /usr/local/lib/
+COPY --from=builder /usr/local/include/librdkafka /usr/local/include/
+COPY --from=builder /usr/local/include/cppkafka /usr/local/include/
 
 # Обновляем кэш библиотек
 RUN ldconfig
 
 # Копируем собранное приложение из builder
-COPY --from=builder /app/build/anomaly_alert /app/
+COPY --from=builder /app/build/AnomalyAlert /app/
+COPY --from=builder /app/build/KafkaConsumer /app/
 COPY --from=builder /app/config /app/config
 
 # Запуск приложения
-CMD ["./anomaly_alert"] 
+CMD ["./AnomalyAlert"] 

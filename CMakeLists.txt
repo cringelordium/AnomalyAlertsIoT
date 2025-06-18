@@ -4,14 +4,25 @@ project(AnomalyAlert)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Добавляем путь к нашим CMake модулям
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+include(FetchContent)
+
+# Fetch and configure nlohmann_json
+FetchContent_Declare(
+    json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.3
+)
+
+FetchContent_MakeAvailable(json)
+
 include_directories(include)
 
 find_package(Threads REQUIRED)
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(CPPKAFKA REQUIRED IMPORTED_TARGET cppkafka)
-pkg_check_modules(RDKAFKA REQUIRED IMPORTED_TARGET rdkafka++)
-pkg_check_modules(NLOHMANN_JSON REQUIRED nlohmann_json)
+find_package(RdKafka REQUIRED)
+find_package(cppkafka REQUIRED)
 
 add_executable(AnomalyAlert
     src/main.cpp
@@ -20,8 +31,9 @@ add_executable(AnomalyAlert
 )
 
 target_link_libraries(AnomalyAlert
-    PkgConfig::CPPKAFKA
-    PkgConfig::RDKAFKA
+    ${cppkafka_LIBRARIES}
+    ${RdKafka_LIBRARIES}
+    nlohmann_json::nlohmann_json
     Threads::Threads
 )
 
@@ -31,7 +43,8 @@ add_executable(KafkaConsumer
 )
 
 target_link_libraries(KafkaConsumer
-    PkgConfig::CPPKAFKA
-    PkgConfig::RDKAFKA
+    ${cppkafka_LIBRARIES}
+    ${RdKafka_LIBRARIES}
+    nlohmann_json::nlohmann_json
     Threads::Threads
 )
